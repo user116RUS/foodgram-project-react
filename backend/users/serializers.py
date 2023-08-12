@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from recipes.serializers import SmallRecipeSerializer
 from users.models import Subscription, User
 
 
