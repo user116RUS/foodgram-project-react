@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     'djoser',
     'api',
     'users',
-    'tags_ingrid',
     'recipes',
     'dotenv',
     'scripts'
