@@ -1,6 +1,6 @@
 from rest_framework.validators import ValidationError as RFError
 
-from recipes.models import Ingredient, Tag
+from recipes import models
 
 
 def validate_time(value):
@@ -22,7 +22,7 @@ def validate_ingredients(data):
         if not ingredient.get('id'):
             raise RFError({'ingredients': ['Отсутствует id ингредиента.']})
         id = ingredient.get('id')
-        if not Ingredient.objects.filter(id=id).exists():
+        if not models.Ingredient.objects.filter(id=id).exists():
             raise RFError({'ingredients': ['Ингредиента нет в БД.']})
         if id in unique_ingredient:
             raise RFError(
@@ -41,6 +41,6 @@ def validate_tags(data):
     if len(data) < 1:
         raise RFError({'tags': ['Хотя бы один тэг должен быть указан.']})
     for tag in data:
-        if not Tag.objects.filter(id=tag).exists():
+        if not models.Tag.objects.filter(id=tag).exists():
             raise RFError({'tags': ['Тэг отсутствует в БД.']})
     return data

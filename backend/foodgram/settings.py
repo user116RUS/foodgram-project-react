@@ -126,13 +126,13 @@ AUTH_USER_MODEL = 'users.User'
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        'user': 'users.serializers.CustomUserSerializer',
-        'current_user': 'users.serializers.CustomUserSerializer',
-        'user_create': 'users.serializers.CustomUserSerializer',
+        'user': 'api.serializers.NewUserSerializer',
+        'current_user': 'api.serializers.NewUserSerializer',
+        'user_create': 'api.serializers.NewUserSerializer',
     },
     'HIDE_USERS': False,
     'PERMISSIONS': {
-        'user': ['users.permissions.AdminOrReadOnly'],
+        'user': ['api.permissions.AdminOrReadOnly'],
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user_delete': ['rest_framework.permissions.IsAdminUser'],
     },
