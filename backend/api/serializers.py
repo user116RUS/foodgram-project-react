@@ -1,12 +1,92 @@
+from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
-from rest_framework import serializers
 
+from tags_ingrid.models import Ingredient, Tag
+from users.models import Subscription, User
 from recipes.models import Favorite, IngredientAmount, Recipe, ShoppingCart
 from recipes.validators import validate_ingredients, validate_tags
 from tags_ingrid.models import Ingredient, Tag
-from tags_ingrid.serializers import TagSerializer
-from users.serializers import CustomUserSerializer
+
+
+class NewUserSerializer(serializers.ModelSerializer):
+    """Сериализатор для User."""
+
+    password = serializers.CharField(write_only=True)
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'password', 'is_subscribed'
+        )
+        write_only_fields = ('password',)
+
+    def get_is_subscribed(self, obj):
+        """Статус подписки на автора."""
+        user = self.context.get('request').user
+        return obj.following.filter(user=user).exists()
+
+    def create(self, validated_data):
+        """Создание нового пользователя."""
+        user = User.objects.create(
+            email=validated_data['email'],
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    email = serializers.ReadOnlyField(source='author.email')
+    id = serializers.ReadOnlyField(source='author.id')
+    username = serializers.ReadOnlyField(source='author.username')
+    first_name = serializers.ReadOnlyField(source='author.first_name')
+    last_name = serializers.ReadOnlyField(source='author.last_name')
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.ReadOnlyField(source='author.recipes.count')
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Subscription
+        fields = (
+            'email', 'id', 'username', 'first_name', 'last_name',
+            'is_subscribed', 'recipes', 'recipes_count'
+        )
+
+    def get_is_subscribed(self, obj):
+        """Статус подписки на автора."""
+        user = self.context.get('request').user
+        return user.follower.filter(author=obj.author).exists()
+
+    def get_recipes(self, obj):
+        """Получение списка рецептов автора."""
+        limit = self.context.get('request').GET.get('recipes_limit')
+        recipe_obj = obj.author.recipes.all()
+        if limit:
+            recipe_obj = recipe_obj[:int(limit)]
+        serializer = SmallRecipeSerializer(recipe_obj, many=True)
+        return serializer.data
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = (
+            'id', 'name', 'color', 'slug'
+        )
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = (
+            'id', 'name', 'measurement_unit'
+        )
 
 
 class IngredientAmountSerializer(serializers.ModelSerializer):
@@ -32,7 +112,7 @@ class SmallRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    author = CustomUserSerializer(read_only=True)
+    author = NewUserSerializer(read_only=True)
     tags = TagSerializer(read_only=True, many=True)
     ingredients = IngredientAmountSerializer(
         read_only=True, many=True, source='ingredientamount_set')
