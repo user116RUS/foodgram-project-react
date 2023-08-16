@@ -3,7 +3,12 @@ from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
 
 from users.models import Subscription, User
-from recipes.models import Favorite, IngredientAmount, Recipe, ShoppingCart, Ingredient, Tag
+from recipes.models import (
+    IngredientAmount,
+    Recipe,
+    Ingredient,
+    Tag
+)
 from recipes.validators import validate_ingredients, validate_tags
 
 
