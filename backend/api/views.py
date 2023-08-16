@@ -10,8 +10,15 @@ from rest_framework.permissions import IsAuthenticated
 from djoser.views import UserViewSet
 
 from api.filters import RecipeFilter, SearchingFilter
-from recipes.models import Favorite, IngredientAmount, Recipe, ShoppingCart
-from recipes.permissions import AuthorOrReadOnly
+from recipes.models import (
+    IngredientAmount,
+    Ingredient,
+    Favorite,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
+from api.permissions import AuthorOrReadOnly
 from api.serializers import (
     RecipeSerializer,
     SmallRecipeSerializer,
@@ -20,7 +27,6 @@ from api.serializers import (
     SubscriptionSerializer
 )
 
-from tags_ingrid.models import Ingredient, Tag
 from users.models import Subscription, User
 
 

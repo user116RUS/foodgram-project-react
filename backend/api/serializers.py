@@ -2,11 +2,9 @@ from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
 
-from tags_ingrid.models import Ingredient, Tag
 from users.models import Subscription, User
-from recipes.models import Favorite, IngredientAmount, Recipe, ShoppingCart
+from recipes.models import Favorite, IngredientAmount, Recipe, ShoppingCart, Ingredient, Tag
 from recipes.validators import validate_ingredients, validate_tags
-from tags_ingrid.models import Ingredient, Tag
 
 
 class NewUserSerializer(serializers.ModelSerializer):
