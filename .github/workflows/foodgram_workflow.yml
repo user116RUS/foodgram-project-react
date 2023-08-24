@@ -51,12 +51,12 @@ jobs:
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
         with:
-          context: ./foodgram/
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
+            cd /foodgram/
             sudo docker pull user116/foodgram_backend:latest
             sudo docker pull user116/foodgram_frontend:latest
             sudo docker-compose stop
