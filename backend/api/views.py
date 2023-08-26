@@ -95,7 +95,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Формирование и скачивание списка покупок."""
         user = request.user
         ingredients = IngredientAmount.objects.filter(
-            recipe__recipe_shopping_cart__user_shopping_cart=user).values(
+            recipe__recipe_shopping_cart__user=user).values(
                 'ingredient__name', 'ingredient__measurement_unit').annotate(
                     Sum('amount', distinct=True))
         pdf = FPDF()
