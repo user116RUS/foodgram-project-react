@@ -76,6 +76,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self.delete_relation(Favorite, user, pk, name)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    @action(methods=['get'], detail=True, url_path='favorites',
+            url_name='favorites')
+    def favorites(self, request):
+
+        user = request.user
+        queryset = Favorite.objects.filter(user=user)
+
+
     @action(methods=['post', 'delete'], detail=True, url_path='shopping_cart',
             url_name='shopping_cart')
     def shopping_cart(self, request, pk=None):
