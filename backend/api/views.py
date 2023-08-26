@@ -8,7 +8,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from djoser.views import UserViewSet
-from rest_framework.views import APIView
 
 from api.filters import RecipeFilter, SearchingFilter
 from recipes.models import (
@@ -64,6 +63,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
         relation.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(methods=['post', 'delete'], detail=True, url_path='favorite',
+            url_name='favorite')
+    def favorite(self, request, pk=None):
+        """Добавление и удаление рецептов - Избранное."""
+        user = request.user
+        if request.method == 'POST':
+            name = 'избранное'
+            return self.add(Favorite, user, pk, name)
+        if request.method == 'DELETE':
+            name = 'избранного'
+            return self.delete_relation(Favorite, user, pk, name)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
     @action(methods=['post', 'delete'], detail=True, url_path='shopping_cart',
             url_name='shopping_cart')
     def shopping_cart(self, request, pk=None):
@@ -106,36 +119,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'attachment; filename="shopping_cart.pdf"')
         response.write(bytes(file))
         return response
-
-
-class FavoriteView(APIView):
-    """ Добавление/удаление рецепта из избранного. """
-
-    permission_classes = [IsAuthenticated, ]
-
-    def post(self, request, id):
-        data = {
-            'user': request.user.id,
-            'recipe': id
-        }
-        if not Favorite.objects.filter(
-           user=request.user, recipe__id=id).exists():
-            serializer = FavoriteSerializer(
-                data=data, context={'request': request}
-            )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(
-                    serializer.data, status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
-        if Favorite.objects.filter(
-           user=request.user, recipe=recipe).exists():
-            Favorite.objects.filter(user=request.user, recipe=recipe).delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

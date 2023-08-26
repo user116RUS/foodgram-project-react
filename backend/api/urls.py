@@ -5,8 +5,7 @@ from api.views import (
     RecipeViewSet,
     IngredientViewSet,
     TagViewSet,
-    CustomUserViewSet,
-    FavoriteView,
+    CustomUserViewSet
 )
 
 
@@ -20,10 +19,5 @@ router.register('ingredients', IngredientViewSet, basename='ingredients')
 
 urlpatterns = (
     path('', include(router.urls)),
-    path(
-        'recipes/<int:id>/favorite/',
-        FavoriteView.as_view(),
-        name='favorite'
-    ),
     path('auth/', include('djoser.urls.authtoken')),
 )
