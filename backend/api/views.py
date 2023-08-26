@@ -18,77 +18,78 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from api.permissions import AuthorOrReadOnly
+from api.permissions import AuthorOrReadOnly, AllowAny
 from api.serializers import (
     RecipeSerializer,
     SmallRecipeSerializer,
     IngredientSerializer,
     TagSerializer,
-    SubscriptionSerializer
+    SubscriptionSerializer,
+    FavoriteRecipeSerializer
 )
 
 from users.models import Subscription, User
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """вьюсет для работы с рецептами."""
     queryset = Recipe.objects.all()
+    permission_classes = (IsAuthenticated,)
     serializer_class = RecipeSerializer
-    permission_classes = (AuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filter_class = RecipeFilter
+    filterset_class = RecipeFilter
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def get_permissions(self):
+        """
+        Просмотр списка рецептов и списка по id
+        доступен всем.
+        """
+        if self.action in ['list', 'retrieve']:
+            return (AllowAny(),)
+        return super().get_permissions()
 
-    def add(self, model, user, pk, name):
-        """Добавление рецепта в список пользователя."""
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return RecipeSerializer
+        return RecipeSerializer
+
+    def _action_post_delete(self, pk, serializer_class):
+        """
+        Функция для добавления/удаления рецепта в списки.
+        """
+        user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        relation = model.objects.filter(user=user, recipe=recipe)
-        if relation.exists():
-            return Response(
-                {'errors': f'Нельзя повторно добавить рецепт в {name}'},
-                status=status.HTTP_400_BAD_REQUEST)
-        model.objects.create(user=user, recipe=recipe)
-        serializer = SmallRecipeSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        object = serializer_class.Meta.model.objects.filter(
+            user=user,
+            recipe=recipe
+        )
+        if self.request.method == 'POST':
+            data = {'user': user.id, 'recipe': pk}
+            context = {'request': self.request}
+            serializer = serializer_class(data=data,
+                                          context=context)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if object.exists():
+            object.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'Этого рецепта не было в cписке'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
-    def delete_relation(self, model, user, pk, name):
-        """Удаление рецепта из списка пользователя."""
-        recipe = get_object_or_404(Recipe, pk=pk)
-        relation = model.objects.filter(user=user, recipe=recipe)
-        if not relation.exists():
-            return Response(
-                {'errors': 'Такой рецепт уже существует!'},
-                status=status.HTTP_400_BAD_REQUEST)
-        relation.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(methods=['post', 'delete'], detail=True, url_path='favorite',
-            url_name='favorite')
+    @action(detail=True,
+            permission_classes=[IsAuthenticated],
+            methods=['POST', 'DELETE'])
     def favorite(self, request, pk=None):
-        """Добавление и удаление рецептов - Избранное."""
-        user = request.user
-        if request.method == 'POST':
-            name = 'избранное'
-            return self.add(Favorite, user, pk, name)
-        if request.method == 'DELETE':
-            name = 'избранного'
-            return self.delete_relation(Favorite, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        """Добавляет/удаляет рецепт в список избранного."""
+        return self._action_post_delete(pk, FavoriteRecipeSerializer)
 
-
-    @action(methods=['post', 'delete'], detail=True, url_path='shopping_cart',
-            url_name='shopping_cart')
+    @action(detail=True,
+            permission_classes=[IsAuthenticated],
+            methods=['POST', 'DELETE'], )
     def shopping_cart(self, request, pk=None):
-        """Добавление и удаление рецептов - Список покупок."""
-        user = request.user
-        if request.method == 'POST':
-            name = 'список покупок'
-            return self.add(ShoppingCart, user, pk, name)
-        if request.method == 'DELETE':
-            name = 'списка покупок'
-            return self.delete_relation(ShoppingCart, user, pk, name)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        """Добавляет/удаляет рецепт в список покупок."""
+        return self._action_post_delete(pk, RecipeSerializer)
 
     @action(methods=['get'], detail=False, url_path='download_shopping_cart',
             url_name='download_shopping_cart')

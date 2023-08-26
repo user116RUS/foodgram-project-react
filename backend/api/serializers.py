@@ -1,13 +1,16 @@
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
+from rest_framework.exceptions import ValidationError
 
 from users.models import Subscription, User
 from recipes.models import (
     IngredientAmount,
     Recipe,
     Ingredient,
-    Tag
+    Tag,
+    FavoriteRecipe,
+    ShoppingCart,
 )
 from recipes.validators import validate_ingredients, validate_tags
 
@@ -115,49 +118,28 @@ class SmallRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Recipe."""
+    tags = TagSerializer(many=True, read_only=True)
     author = NewUserSerializer(read_only=True)
-    tags = TagSerializer(read_only=True, many=True)
     ingredients = IngredientAmountSerializer(
         read_only=True, many=True, source='ingredientamount_set')
-    image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = (
-            'id', 'tags', 'author', 'ingredients', 'is_favorited',
-            'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
-        )
-
-    def get_is_favorited(self, obj):
-        """Рецепт в избранном или нет."""
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Favorite.objects.filter(
-            user=request.user, recipe_id=obj
-        ).exists()
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'is_favorited', 'is_in_shopping_cart',
+                  'name', 'image', 'text', 'cooking_time')
 
     def get_is_in_shopping_cart(self, obj):
-        """Рецепт в списке покупок."""
-        user = self.context.get('request').user
-        return user.user_shopping_cart.filter(recipe=obj).exists()
-
-    def create_ingredient_amount(self, valid_ingredients, recipe):
-        """Создание уникальных записей: ингредиент - рецепт - количество."""
-        ingredient_amounts = []
-
-        for ingredient_data in valid_ingredients:
-            ingredient = get_object_or_404(
-                Ingredient, id=ingredient_data.get('id'))
-            ingredient_amount = IngredientAmount(
-                recipe=recipe,
-                ingredient=ingredient,
-                amount=ingredient_data.get('amount'))
-            ingredient_amounts.append(ingredient_amount)
-
-        IngredientAmount.objects.bulk_create(ingredient_amounts)
+        """Проверка на наличие рецепта в списке покупок."""
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return ShoppingCart.objects.filter(
+            recipe=obj, user=request.user).exists()
 
     def create_tags(self, data, recipe):
         """Создание тэгов у рецепта."""
@@ -195,3 +177,38 @@ class RecipeSerializer(serializers.ModelSerializer):
             'ingredients', instance.ingredients)
         self.create_ingredient_amount(valid_ingredients, instance)
         return instance
+
+
+class FavoriteRecipeSerializer(serializers.ModelSerializer):
+
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True
+    )
+    recipe = serializers.PrimaryKeyRelatedField(
+        queryset=Recipe.objects.all(),
+        write_only=True
+    )
+
+    class Meta:
+        model = FavoriteRecipe
+        fields = ('user', 'recipe')
+
+    def validate(self, data):
+        """Валидация при добавлении рецепта в избранное."""
+        user, recipe = data['user'], data['recipe']
+        if FavoriteRecipe.objects.filter(user=user,
+                                         recipe=recipe).exists():
+            raise ValidationError(
+                'Рецепт уже добавлен в избранное!'
+            )
+        return data
+
+    def to_representation(self, instance):
+        """Отображение добавленного в избранное рецепта."""
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipeSerializer(
+            instance.recipe,
+            context=context
+        ).data
