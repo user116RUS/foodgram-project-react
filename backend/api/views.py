@@ -100,6 +100,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     Sum('amount', distinct=True))
         pdf = FPDF()
         pdf.add_page()
+        pdf.set_font('Times')
         pdf.cell(txt=f'Ваш список покупок:', center=True)
         pdf.ln(8)
         for i, ingredient in enumerate(ingredients):
