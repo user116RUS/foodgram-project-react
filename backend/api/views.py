@@ -74,7 +74,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if object.exists():
             object.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({'Этого рецепта не было в cписке'},
+        return Response({'Этого рецепта не было в cписке!'},
                         status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
