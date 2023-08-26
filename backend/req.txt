@@ -12,7 +12,7 @@ djangorestframework-simplejwt==5.2.2
 djoser==2.2.0
 drf-base64==2.0
 flake8==6.1.0
-fpdf==1.7.2
+fpdf2==2.5.4
 gunicorn==21.2.0
 idna==3.4
 mccabe==0.7.0
