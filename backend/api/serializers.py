@@ -7,7 +7,8 @@ from recipes.models import (
     IngredientAmount,
     Recipe,
     Ingredient,
-    Tag
+    Tag,
+    Favorite
 )
 from recipes.validators import validate_ingredients, validate_tags
 
@@ -29,7 +30,7 @@ class NewUserSerializer(serializers.ModelSerializer):
     def get_is_subscribed(self, obj):
         """Статус подписки на автора."""
         user = self.context.get('request').user
-        return obj.following.filter(user=user).exists()
+        return obj.following.filter(user=user.id).exists()
 
     def create(self, validated_data):
         """Создание нового пользователя."""
@@ -135,8 +136,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(
-            user=request.user, recipe_id=obj
+        return Recipe.objects.filter(
+            marked_by__user=request.user
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
