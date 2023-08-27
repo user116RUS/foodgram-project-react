@@ -103,7 +103,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         pdf.add_font(
             'DejaVu', '', './recipes/fonts/DejaVuSansCondensed.ttf', uni=True)
         pdf.set_font('DejaVu', size=14)
-        pdf.cell(txt=f'Ваш список покупок: ', center=True)
+        pdf.cell(txt='Ваш список покупок:', center=True)
         pdf.ln(8)
         for i, ingredient in enumerate(ingredients):
             name = ingredient['ingredient__name']
