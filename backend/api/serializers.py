@@ -142,6 +142,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         return user.user_shopping_cart.filter(recipe=obj).exists()
 
+    def get_author(self, obj):
+        """Рецепт в списке покупок."""
+        user = self.context.get('request').user
+        return user.recipe.all()
+
     def create_ingredient_amount(self, valid_ingredients, recipe):
         """Создание уникальных записей: ингредиент - рецепт - количество."""
         ingredient_amounts = []
