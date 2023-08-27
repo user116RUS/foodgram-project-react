@@ -14,7 +14,8 @@ class IngredientFilter(SearchFilter):
 
 
 class RecipeFilter(FilterSet):
-    """Фильтр рецептов по автору, тегу,
+    """
+    Фильтр рецептов по автору, тегу,
     наличию в избранном и в списке покупок.
     """
     author = filters.AllValuesMultipleFilter(
