@@ -133,16 +133,14 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        """Статус - рецепт в избранном или нет."""
-        user_id = self.context.get('request').user.id
-        return Favorite.objects.filter(
-            user=user_id, recipe=obj.id).exists()
+        """Рецепт в избранном или нет."""
+        user = self.context.get('request').user
+        return user.favorites.filter(recipe=obj.id).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        """Статус - рецепт в избранном или нет."""
-        user_id = self.context.get('request').user.id
-        return ShoppingCart.objects.filter(
-            user=user_id, recipe=obj.id).exists()
+        """Рецепт в списке покупок."""
+        user = self.context.get('request').user
+        return user.user_shopping_cart.filter(recipe=obj).exists()
 
     def create_ingredient_amount(self, valid_ingredients, recipe):
         """Создание уникальных записей: ингредиент - рецепт - количество."""
