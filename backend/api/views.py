@@ -18,7 +18,7 @@ from recipes.models import (
     ShoppingCart,
     Tag,
 )
-from api.permissions import AuthorOrReadOnly, AllowAny
+from api.permissions import AuthorOrReadOnly
 from api.serializers import (
     RecipeSerializer,
     SmallRecipeSerializer,

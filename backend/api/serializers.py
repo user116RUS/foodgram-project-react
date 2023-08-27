@@ -191,7 +191,7 @@ class FavoriteRecipeSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        model = FavoriteRecipe
+        model = Favorite
         fields = ('user', 'recipe')
 
     def validate(self, data):
