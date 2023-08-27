@@ -70,7 +70,7 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
     def count_added(self, obj):
-        return obj.favorite.count()
+        return obj.favorites.count()
 
 
 class IngredientAmountAdmin(admin.ModelAdmin):
