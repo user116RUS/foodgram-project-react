@@ -9,7 +9,7 @@ from recipes.models import (
     Recipe,
     Ingredient,
     Tag,
-    FavoriteRecipe,
+    Favorite,
     ShoppingCart,
 )
 from recipes.validators import validate_ingredients, validate_tags
