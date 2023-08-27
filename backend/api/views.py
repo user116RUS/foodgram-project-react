@@ -33,9 +33,9 @@ from users.models import Subscription, User
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    filterset_class = RecipeFilter
     permission_classes = (AuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filter_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
