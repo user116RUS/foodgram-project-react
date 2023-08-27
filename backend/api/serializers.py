@@ -8,7 +8,8 @@ from recipes.models import (
     Recipe,
     Ingredient,
     Tag,
-    Favorite
+    Favorite,
+    ShoppingCart
 )
 from recipes.validators import validate_ingredients, validate_tags
 
@@ -132,18 +133,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        """Рецепт в избранном или нет."""
-        request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Recipe.objects.filter(
-            marked_by__user=request.user
-        ).exists()
+        """Статус - рецепт в избранном или нет."""
+        user_id = self.context.get('request').user.id
+        return Favorite.objects.filter(
+            user=user_id, recipe=obj.id).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        """Рецепт в списке покупок."""
-        user = self.context.get('request').user
-        return user.user_shopping_cart.filter(recipe=obj).exists()
+        """Статус - рецепт в избранном или нет."""
+        user_id = self.context.get('request').user.id
+        return ShoppingCart.objects.filter(
+            user=user_id, recipe=obj.id).exists()
 
     def create_ingredient_amount(self, valid_ingredients, recipe):
         """Создание уникальных записей: ингредиент - рецепт - количество."""
