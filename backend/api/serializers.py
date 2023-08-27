@@ -133,7 +133,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        """Рецепт в избранном или нет."""
+        """Рецепт в избранном или нет. """
         user = self.context.get('request').user
         return user.favorites.filter(recipe=obj).exists()
 
