@@ -3,7 +3,6 @@
 ---
 ### Сервис доступен по адресу:
 ```
-https://158.160.15.171/
 https://foodgram-pierdunne.ddns.net/recipes
 ```
 
