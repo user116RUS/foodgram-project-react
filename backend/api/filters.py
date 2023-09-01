@@ -43,6 +43,7 @@ class RecipeFilter(FilterSet):
         )
 
     def get_is_favorited(self, queryset, name, value):
+        queryset = super().filter_queryset(queryset)
         if value:
             return queryset.filter(favorites__user=self.request.user.id)
         return queryset
