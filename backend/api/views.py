@@ -3,11 +3,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from fpdf import FPDF
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from djoser.views import UserViewSet
+
 
 from api.filters import RecipeFilter, SearchingFilter
 from recipes.models import (
@@ -36,6 +37,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
     permission_classes = (AuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return (permissions.AllowAny(),)
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
