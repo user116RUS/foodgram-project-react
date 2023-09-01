@@ -53,8 +53,8 @@ sudo docker-compose exec backend python manage.py loadmodels --path 'recipes/dat
 ```
 
 7. Тестовый Юзер
-
+```
 login: test@test.ru
 pass:  test1234
-
+```
 ![example workflow](https://github.com/ruzhova/foodgram-project-react/actions/workflows/main.yml/badge.svg)
