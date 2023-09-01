@@ -45,14 +45,14 @@ class RecipeFilter(FilterSet):
     def get_is_favorited(self, queryset, name, value):
         queryset = super().filter_queryset(queryset)
         if value:
-            return queryset.filter(favorites__user=self.request.user.id)
+            return queryset.filter(favorites__user=self.request.user)
         return queryset
 
     def get_is_in_shopping_cart(self, queryset, name, value):
         """Рецепты, находящиеся в списке покупок."""
         if value:
             return Recipe.objects.filter(
-                recipe_shopping_cart__user=self.request.user.id
+                recipe_shopping_cart__user=self.request.user
             )
 
 
