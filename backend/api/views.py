@@ -38,11 +38,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (AuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return (permissions.AllowAny(),)
-        return super().get_permissions()
-
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
